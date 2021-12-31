@@ -74,6 +74,46 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details) {
     }
   }
 }
+void execPipe(char *args1, char *args2, struct execDetails *exec_details) {
+  int fd[2];
+  int pid, status = 0;
+  pipe(fd);
+  pid = fork();
+  if (pid == 0) {
+    close(fd[0]);
+    if (exec_details->in_file != NULL)
+      redirect_input(exec_details->in_file);
+    close(1);
+    dup(fd[1]);
+    close(fd[1]);
+    execvp(args1[0], args1);
+    perror(args1[0]);
+    exit(2);
+  } else {
+    close(fd[1]);
+    pid = fork();
+    if (pid == 0) {
+      close(fd[1]);
+      if (exec_details->out_file != NULL) {
+        if (exec_details->add == 1)
+          redirect_output(exec_details->out_file, 1);
+        else
+          redirect_output(exec_details->out_file, 0);
+      }
+      close(0);
+      dup(fd[0]);
+      close(fd[0]);
+      execvp(args2[0], args2);
+      perror(args2[0]);
+      exit(2);
+    } else
+      close(fd[0]);
+  }
+  wait(&status);
+  exec_details->runtime_error = status;
+  wait(&status);
+  exec_details->runtime_error += status;
+}
 
 int getArgs(struct args *args, char *cmd) {
   int i = 0;
@@ -94,8 +134,17 @@ int getArgs(struct args *args, char *cmd) {
     args->arg = (char *)"./help";
   return i;
 }
-char *getArgsList(struct args *args, char **first_arg, int argc) {}
-
+char *getArgsList(struct args *args, char **first_arg, int argc) {
+  int i = 0;
+  while (i < argc) {
+    first_arg[i] = args->arg;
+    args = args->next;
+    i++;
+  }
+  first_arg[i] = NULL;
+  insertNULL(first_arg[i - 1]);
+  return args->arg;
+}
 void cleanExec(struct execDetails *exec_details) {
   exec_details->add = NULL;
   exec_details->command = NULL;
@@ -103,7 +152,6 @@ void cleanExec(struct execDetails *exec_details) {
   exec_details->in_file = NULL;
   exec_details->out_file = NULL;
 }
-
 int findRedirections(char *cmd, struct execDetails *exec_details) {
   if (cmd != NULL) {
     if (cmd[0] == '<') {
@@ -141,8 +189,14 @@ int findRedirections(char *cmd, struct execDetails *exec_details) {
   exec_details->command = cmd;
   return 0;
 }
-
-void cleanArgs(struct args *args) {}
+void cleanArgs(struct args *args) {
+  struct args *arguments = args->next;
+  while (arguments != NULL) {
+    struct args *current_arg = arguments;
+    arguments = arguments->next;
+    free(arguments);
+  }
+}
 void redirect(struct execDetails *exec_details) {
   if (exec_details->in_file != NULL)
     redirect_input(exec_details->in_file);
@@ -157,7 +211,6 @@ void redirect_input(char *file) {
   fd = open(file, O_RDONLY);
   dup(fd);
 }
-
 void redirect_output(char *file, int append) {
   if (!append) {
     int fd;
@@ -171,4 +224,3 @@ void redirect_output(char *file, int append) {
     dup(fd);
   }
 }
-void execPipe(char *args1, char *args2, struct execDetails *exec_details) {}
