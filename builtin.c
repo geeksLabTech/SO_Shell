@@ -9,11 +9,14 @@
 
 void changeDir(char *cmdLine, struct cmdInfo *cmd_info) {
   if (cmdLine[2] == '\n') {
-    struct passwd *pw = getpwuid(getuid());
+    struct passwd *pw =
+        getpwuid(getuid()); // Si no se especifica directorio se deberá cambiar
+                            // al home del usuario
     const char *homedir = pw->pw_dir;
     chdir(homedir);
     // printf("moving to %s", homedir);
   } else {
+    // Si se especifíca un directorio se cambia a ese directorio
     char *pointer = strtok(cmdLine + 3, " ");
     if (pointer != NULL) {
       insertNULL(pointer);
@@ -26,6 +29,8 @@ void changeDir(char *cmdLine, struct cmdInfo *cmd_info) {
 }
 
 char *runAgain(char *cmdLine, struct cmdInfo *cmd_info) {
+  // Busca el comando deseado en history y se retorna, en caso de no ser válida
+  // la selección, se retorna null
   char *pointer = strchr(cmdLine, ' ');
   if (pointer == NULL)
     return NULL;
@@ -37,6 +42,7 @@ char *runAgain(char *cmdLine, struct cmdInfo *cmd_info) {
 }
 
 void insertNULL(char *string) {
+  // Sustituye los saltos de línea por null
   int len = strlen(string);
   if (string[len - 1] == '\n')
     string[len - 1] = '\0';
