@@ -8,7 +8,8 @@
 #include <unistd.h>
 
 int main() {
-  char cmdLine[MAX];
+  // printf("1\n");
+  char cmdLine[MAX] = {0};
 
   int setStdout = dup(1);
   int setStdin = dup(0);
@@ -19,19 +20,20 @@ int main() {
   readHistory(cmd_info);
 
   while (1) {
-
     // Restablecer entrada y salida estándar
     close(1);
     dup(setStdout);
     close(0);
     dup(setStdin);
 
+    // printf("%d\n", cmd_info->count);
     // si el comando ejecutado terminó satisfactoriamente se añade a history
-    if (cmd_info->runtime_error == 0 && originalCmd[0] != ' ' &&
-        originalCmd[0] != '\n')
+    if (cmd_info->runtime_error == 0 && originalCmd != NULL &&
+        originalCmd[0] != ' ' && originalCmd[0] != '\n') {
       updateHistory(originalCmd, cmd_info);
+    }
 
-    // prompt y lee nuevo comando
+    // // prompt y lee nuevo comando
     printPrompt();
     fgets(cmdLine, MAX, stdin);
 
@@ -45,7 +47,6 @@ int main() {
       cmd_info->runtime_error = 0;
       continue;
     }
-    // cierra la terminal
     if (strncmp(cmdLine, "exit\n", 5) == 0) {
       updateHistory(originalCmd, cmd_info);
       free(originalCmd);
@@ -70,7 +71,6 @@ int main() {
         continue;
       }
     }
-
     execute(cmdLine, cmd_info);
     continue;
   }

@@ -30,9 +30,9 @@ struct execDetails {
 };
 #endif
 
-void execute(char line[], struct cmdInfo cmd_info);
+void execPipe(char *args1[], char *args2[], struct execDetails *exec_details);
 void execSimple(char *line[], int argc, struct execDetails *exec_details);
-void execPipe(char *args1, char *args2, struct execDetails *exec_details);
+void execute(char line[], struct cmdInfo *cmd_info);
 
 void insertNULL(char *string);
 int getArgs(struct args *args, char *cmd);

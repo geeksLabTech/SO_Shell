@@ -30,7 +30,7 @@ void writeHistory(struct cmdInfo *cmd_info) {
 
 void updateHistory(char *cmd, struct cmdInfo *cmd_info) {
   char **commands = cmd_info->firstCmd;
-  char *line = (char *)malloc(strlen(line) + 1);
+  char *line = (char *)malloc(strlen(cmd) + 1);
   strcpy(line, cmd);
 
   int i = cmd_info->count;

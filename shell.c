@@ -7,7 +7,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void execute(char line[], struct cmdInfo cmd_info) {
+void execute(char line[], struct cmdInfo *cmd_info) {
   char *cmd = line;
   struct args *cmd_args = (struct args *)malloc(sizeof(struct args));
   struct execDetails *exec_details =
@@ -20,9 +20,9 @@ void execute(char line[], struct cmdInfo cmd_info) {
   cleanExec(exec_details);
   if (cmd == NULL) {
     execSimple(first_arg, argc, exec_details);
-  } else if (findRedirections(cmd, exec_details) < 0)
+  } else if (findRedirections(cmd, exec_details) < 0) {
     syntax_error = 1;
-  else {
+  } else {
     cmd = exec_details->command;
     if (cmd != NULL) {
       if (cmd[0] == '|') {
@@ -50,7 +50,7 @@ void execute(char line[], struct cmdInfo cmd_info) {
   if (syntax_error) {
     printf("Error: Syntax Error\n");
   } else {
-    cmd_info.runtime_error = exec_details->runtime_error;
+    cmd_info->runtime_error = exec_details->runtime_error;
   }
 }
 
@@ -59,22 +59,28 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details) {
   pid_t son_id;
 
   son_id = fork();
-
+  int wait_signal = 0;
+  if (strcmp(line[argc - 1], "&") == 0) {
+    line[argc - 1] = NULL;
+    wait_signal = 1;
+  }
   if (son_id == -1) {
     printf("Error creando el proceso");
-  } else if (son_id == 0) {
+  } else if (son_id == 0 && line != NULL) {
     execvp(line[0], line);
     perror(line[0]);
     exit(2);
   } else {
     // valorar if aquí
-    if (strcmp(line[argc], "&\n") == 0) {
-      wait(&status);
+    if (wait_signal != 1) {
+      waitpid(son_id, &status, 0);
       exec_details->runtime_error = status;
-    }
+    } else
+      exec_details->runtime_error = status;
   }
 }
-void execPipe(char *args1, char *args2, struct execDetails *exec_details) {
+
+void execPipe(char *args1[], char *args2[], struct execDetails *exec_details) {
   int fd[2];
   int pid, status = 0;
   pipe(fd);
@@ -109,15 +115,17 @@ void execPipe(char *args1, char *args2, struct execDetails *exec_details) {
     } else
       close(fd[0]);
   }
-  wait(&status);
+  waitpid(pid, &status, 0);
   exec_details->runtime_error = status;
-  wait(&status);
+  waitpid(pid, &status, 0);
   exec_details->runtime_error += status;
 }
 
 int getArgs(struct args *args, char *cmd) {
   int i = 0;
   struct args *cmd_args = args;
+  cmd = strtok(cmd, " ");
+
   while (cmd != NULL) {
     if (cmd[0] == '>' || cmd[0] == '<' || cmd[0] == '|') {
       break;
@@ -146,9 +154,9 @@ char *getArgsList(struct args *args, char **first_arg, int argc) {
   return args->arg;
 }
 void cleanExec(struct execDetails *exec_details) {
-  exec_details->add = NULL;
+  exec_details->add = 0;
   exec_details->command = NULL;
-  exec_details->runtime_error = NULL;
+  exec_details->runtime_error = 0;
   exec_details->in_file = NULL;
   exec_details->out_file = NULL;
 }
@@ -194,7 +202,7 @@ void cleanArgs(struct args *args) {
   while (arguments != NULL) {
     struct args *current_arg = arguments;
     arguments = arguments->next;
-    free(arguments);
+    free(current_arg);
   }
 }
 void redirect(struct execDetails *exec_details) {
