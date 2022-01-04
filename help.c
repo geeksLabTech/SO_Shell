@@ -22,19 +22,16 @@ help: ayuda (1 punto)\n\n\
 Comandos built-in:\n\
 cd: cambia de directorios\n\
 exit: termina el Shell\n\
-history: lista los ultimos 10 comandos\n\
+history: lista los últimos 10 comandos\n\
 again <number>: ejecuta el comando <number> de la lista de comandos\n\
 help: ayuda\n\
 Total: 5 puntos\n\n";
 
-char basic[] = "Detalles de la implementacion\n\n\
+char basic[] = "Detalles de la implementación\n\n\
 El nombre del shell: \n\
-prompt de la consola - \"keli $ \". El comando chpro muestra prompt del \"directorio actual $\" y viceversa\n\
-Ejemplo: keli $ chpro\n\
-         /home/pepe/so/shell $ chpro\n\
-         keli $\n\n\
-cd -     Para su ejecucion se utilizo la funcion chdir de unistd.h.\n\n\
-exit -   La ejecucion del exit se realiza dentro de un ciclo while que solo se interrumpe con este comando \n\
+prompt de la consola - \"<dir> $ \n\
+cd -     Para su ejecución se utilizo la funcion chdir de unistd.h.\n\n\
+exit -   La ejecución del exit se realiza dentro de un ciclo while que solo se interrumpe con este comando \n\
          mediante un break.\n\n\
 > >> > - Para ejecutarlos se realiza primero el analisis del comando y sus argumentos para poblar\n\
          el array de apuntadores que recibe el comando execvp, luego se recorre el resto de la linea\n\
