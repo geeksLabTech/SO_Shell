@@ -51,46 +51,97 @@ void insertNULL(char *string) {
     string[len - 1] = '\0';
 }
 
-void add_job(pid_t pid, struct cmdInfo *cmd_info) {
-  printf("1/n");
+void add_job(pid_t pid) {
   int newcount = 0;
-  int jobs[cmd_info->job_count];
-  for (int i = 0; i < cmd_info->job_count; i++) {
-    printf("2/n");
-    if (getpgid(cmd_info->jobs[i]) >= 0 && kill(cmd_info->jobs[i], 0) == -1 &&
-        errno == ESRCH) {
-      continue;
-    } else {
-      jobs[newcount++] = cmd_info->jobs[i];
-    }
-  }
-  printf("3/n");
-  if (!(getpgid(pid) >= 0 && kill(pid, 0) == -1 && errno == ESRCH)) {
-    jobs[newcount++] = pid;
-  }
+  FILE *fd = fopen("jobs.log", "r");
+  char *count = (char *)malloc(sizeof(char) * MAX);
+  char *endptr = (char *)malloc(sizeof(char) * MAX);
 
-  cmd_info->jobs = (int *)malloc(sizeof(int) * newcount);
-  for (int i = 0; i < newcount; i++) {
-    cmd_info->jobs[i] = jobs[i];
+  int jobcount = 0;
+  if (fd) {
+    fgets(count, MAX, fd);
+    jobcount = strtol(count, &endptr, 10);
+    int jobs[jobcount];
+    char *temp_char = (char *)malloc(sizeof(char) * MAX);
+    for (int i = 0; i < jobcount; i++) {
+      fgets(temp_char, MAX, fd);
+      printf("%s\n", temp_char);
+      jobs[i] = (int)strtol(temp_char, &endptr, 10);
+      if (getpgid(jobs[i]) >= 0 && kill(jobs[i], 0) == -1 && errno == ESRCH) {
+        continue;
+      } else {
+        jobs[newcount++] = jobs[i];
+      }
+    }
+    fclose(fd);
+    if (!(getpgid(pid) >= 0 && kill(pid, 0) == -1 && errno == ESRCH)) {
+      jobs[newcount++] = pid;
+    }
+
+    FILE *fd = fopen("jobs.log", "w");
+    char *word = (char *)malloc(sizeof(char) * MAX);
+    sprintf(word, "%d", newcount - 1);
+    fputs(word, fd);
+    fputs("\n", fd);
+    for (int i = 0; i < newcount; i++) {
+      sprintf(word, "%d", jobs[i]);
+      fputs(word, fd);
+      fputs("\n", fd);
+    }
+    fclose(fd);
+  }
+  if (!(getpgid(pid) >= 0 && kill(pid, 0) == -1 && errno == ESRCH)) {
+
+    FILE *fd = fopen("jobs.log", "w");
+    char *word = (char *)malloc(sizeof(char) * MAX);
+    fputs("1\n", fd);
+    sprintf(word, "%d", pid);
+    fputs(word, fd);
+    fputs("\n", fd);
+    fclose(fd);
   }
 }
 
-void print_jobs(struct cmdInfo *cmd_info) {
+void print_jobs() {
+  // printf("1\n");
   int newcount = 0;
-  int jobs[cmd_info->job_count];
+  FILE *fd = fopen("jobs.log", "r");
+  char *count = (char *)malloc(sizeof(char) * MAX);
+  char *endptr = (char *)malloc(sizeof(char) * MAX);
 
-  for (int i = 0; i < cmd_info->job_count; i++) {
-    if (getpgid(cmd_info->jobs[i]) >= 0 && kill(cmd_info->jobs[i], 0) == -1 &&
-        errno == ESRCH) {
+  int jobcount = 0;
+  fgets(count, MAX, fd);
+  jobcount = strtol(count, &endptr, 10);
+  int jobs[jobcount];
+  char *temp_char = (char *)malloc(sizeof(char) * MAX);
+  for (int i = 0; i < jobcount; i++) {
+    fgets(temp_char, MAX, fd);
+    jobs[i] = (int)strtol(temp_char, &endptr, 10);
+    if (getpgid(jobs[i]) >= 0 && kill(jobs[i], 0) == -1 && errno == ESRCH) {
       continue;
     } else {
-      jobs[newcount++] = cmd_info->jobs[i];
-      printf("%d:[%d]\n", i, cmd_info->jobs[i]);
+      jobs[newcount++] = jobs[i];
     }
   }
-
-  cmd_info->jobs = (int *)malloc(sizeof(int) * newcount);
+  fclose(fd);
   for (int i = 0; i < newcount; i++) {
-    cmd_info->jobs[i] = jobs[i];
+    printf("%d:[%d]\n", i, jobs[i]);
   }
+
+  fd = fopen("jobs.log", "w");
+  char *word = (char *)malloc(sizeof(char) * MAX);
+  sprintf(word, "%d", newcount - 1);
+  fputs(word, fd);
+  fputs("\n", fd);
+  for (int i = 0; i < newcount; i++) {
+    sprintf(word, "%d", jobs[i]);
+    fputs(word, fd);
+    fputs("\n", fd);
+  }
+  fclose(fd);
+}
+
+void wait_job(pid_t pid) {
+  int *stat = (int *)malloc(sizeof(int));
+  waitpid(pid, stat, 0);
 }

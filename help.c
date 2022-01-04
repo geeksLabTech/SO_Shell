@@ -17,7 +17,7 @@ Funcionalidades implementadas:\n\
 basic: funcionalidades basicas (3 puntos)\n\
 history: lista ultimos 10 comandos (0.5 puntos)\n\
 spaces: permitir cualquier cantidad de espacios entre los comandos y parametros (0.5 puntos)\n\
-&: permitir que se ejecuten comandos en segundo plano (0.5 puntos)\n\
+&,jobs fg: permitir que se ejecuten comandos en segundo plano, mostrar los procesos ejecutandose y esperar por un proceso (0.5 puntos)\n\
 help: ayuda (1 punto)\n\n\
 Comandos built-in:\n\
 cd: cambia de directorios\n\

@@ -29,7 +29,7 @@ void execute(char line[], struct cmdInfo *cmd_info) {
 
   // Si no hay argumentos ejecutar comando simple
   if (cmd == NULL) {
-    execSimple(first_arg, argc, exec_details, cmd_info);
+    execSimple(first_arg, argc, exec_details);
   } else if (findRedirections(cmd, exec_details) < 0) {
     syntax_error = 1; // si se encuentran errores en los argumentos se informa
                       // el error de sintaxis
@@ -61,7 +61,7 @@ void execute(char line[], struct cmdInfo *cmd_info) {
       // si hay redirecciónes de entrada o salida se abren los ficheros y se
       // ejecuta el comando simple
       redirect(exec_details);
-      execSimple(first_arg, argc, exec_details, cmd_info);
+      execSimple(first_arg, argc, exec_details);
     }
   }
   // una vez ejectado todo se libera la memoria ocupada por los argumentos
@@ -75,8 +75,7 @@ void execute(char line[], struct cmdInfo *cmd_info) {
   }
 }
 
-void execSimple(char *line[], int argc, struct execDetails *exec_details,
-                struct cmdInfo *cmd_info) {
+void execSimple(char *line[], int argc, struct execDetails *exec_details) {
   // estado de la subtarea
   int status = 0;
   pid_t son_id; // id del hijo
@@ -106,9 +105,8 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details,
       exec_details->runtime_error = status;
     } else {
       // añadir el id a la lista de procesos en segundo plano
-      printf("0\n");
-      add_job(son_id, cmd_info);
-      // printf("2\n");
+      printf("%d\n", son_id);
+      add_job(son_id);
       // si debía ejecutarse en segundo plano, solo guardar los detalles
       exec_details->runtime_error = status;
     }

@@ -59,8 +59,8 @@ int main() {
       // Cerrar Shell
       if (strncmp(cmdLine, "exit\n", 5) == 0) {
         updateHistory(originalCmd, cmd_info);
-        free(originalCmd);
         writeHistory(cmd_info);
+        free(originalCmd);
         br = 1;
         break;
       }
@@ -95,13 +95,19 @@ int main() {
       }
 
       if (strncmp(cmdLine, "jobs", 4) == 0) {
-        print_jobs(cmd_info);
+        print_jobs();
         cont = 1;
         break;
       }
 
       if (strncmp(cmdLine, "fg", 2) == 0) {
-
+        char *pointer = strchr(cmdLine, ' ');
+        if (pointer == NULL) {
+          printf("No se especificó un PID\n");
+          break;
+        }
+        int number = (int)strtol(pointer + 1, NULL, 10);
+        wait_job(number);
         cont = 1;
         break;
       }
