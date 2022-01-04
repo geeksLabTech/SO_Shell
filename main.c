@@ -42,47 +42,78 @@ int main() {
     // guarda la cadena original
     originalCmd = (char *)malloc(strlen(cmdLine) + 1);
     strcpy(originalCmd, cmdLine);
+    int br = 0;
+    int cont = 0;
+    while (1) {
+      // si se recibe esto no sucede nada
+      if (cmdLine[0] == '\n') {
+        cont = 1;
+        break;
+      }
+      if (cmdLine[0] == '#') {
+        cmd_info->runtime_error = 0;
+        cont = 1;
+        break;
+      }
 
-    // si se recibe esto no sucede nada
-    if (cmdLine[0] == '\n')
-      continue;
-    if (cmdLine[0] == '#') {
-      cmd_info->runtime_error = 0;
-      continue;
-    }
+      // Cerrar Shell
+      if (strncmp(cmdLine, "exit\n", 5) == 0) {
+        updateHistory(originalCmd, cmd_info);
+        free(originalCmd);
+        writeHistory(cmd_info);
+        br = 1;
+        break;
+      }
 
-    // Cerrar Shell
-    if (strncmp(cmdLine, "exit\n", 5) == 0) {
-      updateHistory(originalCmd, cmd_info);
-      free(originalCmd);
-      writeHistory(cmd_info);
+      // Cambiar de directorio
+      if (strncmp(cmdLine, "cd", 2) == 0) {
+        if (cmdLine[2] == ' ' || cmdLine[2] == '\n') {
+          changeDir(cmdLine, cmd_info);
+          cont = 1;
+          break;
+        }
+      }
+
+      // Mostrar history
+      if (strncmp(cmdLine, "history\n", 8) == 0) {
+        updateHistory(originalCmd, cmd_info);
+        printHistory(cmd_info);
+        cont = 1;
+        break;
+      }
+
+      // Ejecutar último comando nuevamente
+      if (strncmp(cmdLine, "again", 4) == 0) {
+        originalCmd = runAgain(cmdLine, cmd_info);
+        if (originalCmd == NULL) {
+          printf("Numero de comando fuera de rango\n");
+          cont = 1;
+          break;
+        }
+        strcpy(cmdLine, originalCmd);
+        continue;
+      }
+
+      if (strncmp(cmdLine, "jobs", 4) == 0) {
+        print_jobs(cmd_info);
+        cont = 1;
+        break;
+      }
+
+      if (strncmp(cmdLine, "fg", 2) == 0) {
+
+        cont = 1;
+        break;
+      }
       break;
     }
 
-    // Cambiar de directorio
-    if (strncmp(cmdLine, "cd", 2) == 0) {
-      if (cmdLine[2] == ' ' || cmdLine[2] == '\n') {
-        changeDir(cmdLine, cmd_info);
-        continue;
-      }
-    }
-
-    // Mostrar history
-    if (strncmp(cmdLine, "history\n", 8) == 0) {
-      updateHistory(originalCmd, cmd_info);
-      printHistory(cmd_info);
+    if (cont) {
       continue;
     }
-
-    // Ejecutar último comando nuevamente
-    if (strncmp(cmdLine, "again", 5) == 0) {
-      originalCmd = runAgain(cmdLine, cmd_info);
-      if (originalCmd == NULL) {
-        printf("Numero de comando fuera de rango\n");
-        continue;
-      }
+    if (br) {
+      break;
     }
-
     // En caso de q no se ejecute ningún comando built in, se pasará a la
     // ejecución del comando
     execute(cmdLine, cmd_info);

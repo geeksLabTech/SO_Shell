@@ -1,4 +1,6 @@
 #include "shell.h"
+#include "builtin.h"
+#include <asm-generic/errno-base.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -27,7 +29,7 @@ void execute(char line[], struct cmdInfo *cmd_info) {
 
   // Si no hay argumentos ejecutar comando simple
   if (cmd == NULL) {
-    execSimple(first_arg, argc, exec_details);
+    execSimple(first_arg, argc, exec_details, cmd_info);
   } else if (findRedirections(cmd, exec_details) < 0) {
     syntax_error = 1; // si se encuentran errores en los argumentos se informa
                       // el error de sintaxis
@@ -59,7 +61,7 @@ void execute(char line[], struct cmdInfo *cmd_info) {
       // si hay redirecciónes de entrada o salida se abren los ficheros y se
       // ejecuta el comando simple
       redirect(exec_details);
-      execSimple(first_arg, argc, exec_details);
+      execSimple(first_arg, argc, exec_details, cmd_info);
     }
   }
   // una vez ejectado todo se libera la memoria ocupada por los argumentos
@@ -73,7 +75,8 @@ void execute(char line[], struct cmdInfo *cmd_info) {
   }
 }
 
-void execSimple(char *line[], int argc, struct execDetails *exec_details) {
+void execSimple(char *line[], int argc, struct execDetails *exec_details,
+                struct cmdInfo *cmd_info) {
   // estado de la subtarea
   int status = 0;
   pid_t son_id; // id del hijo
@@ -82,6 +85,7 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details) {
   int wait_signal = 0;
   // Si el comando tiene el operador & al final se corerá en segundo plano
   if (strcmp(line[argc - 1], "&") == 0) {
+    // printf("0\n");
     line[argc - 1] = NULL;
     wait_signal = 1;
   }
@@ -100,9 +104,14 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details) {
     if (wait_signal != 1) {
       waitpid(son_id, &status, 0);
       exec_details->runtime_error = status;
-    } else
+    } else {
+      // añadir el id a la lista de procesos en segundo plano
+      printf("0\n");
+      add_job(son_id, cmd_info);
+      // printf("2\n");
       // si debía ejecutarse en segundo plano, solo guardar los detalles
       exec_details->runtime_error = status;
+    }
   }
 }
 

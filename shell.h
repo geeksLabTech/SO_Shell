@@ -1,4 +1,5 @@
 
+#include <fcntl.h>
 #define MAX 256
 
 #ifndef CMDINFO
@@ -7,6 +8,8 @@ struct cmdInfo {
   int count;
   char **firstCmd;
   int runtime_error;
+  int job_count;
+  pid_t *jobs;
 };
 #endif
 
@@ -31,7 +34,8 @@ struct execDetails {
 #endif
 
 void execPipe(char *args1[], char *args2[], struct execDetails *exec_details);
-void execSimple(char *line[], int argc, struct execDetails *exec_details);
+void execSimple(char *line[], int argc, struct execDetails *exec_details,
+                struct cmdInfo *cmd_info);
 void execute(char line[], struct cmdInfo *cmd_info);
 
 void insertNULL(char *string);
