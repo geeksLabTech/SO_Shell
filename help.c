@@ -1,5 +1,5 @@
-/* Autores: Lia de la Concepcion Zerquera Ferrer (C212)
-                        Kevin Talavera Diaz (C211)
+/* Autores: Daniel Alejandro Cárdenas Cabrera(C213)
+            Javier Alejandro Oramas López(C212)           
 */
 #include <stdio.h>
 #include <stdlib.h>
