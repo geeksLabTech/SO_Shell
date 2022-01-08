@@ -40,7 +40,11 @@ exit -   Cuando se detecta el comando exit se ejecuta un break dentro del while 
      | - Recibe un comando que estará formado por 2 comandos, y posiblemente una redirección de salida\
         Se procesan ambos comandos y se extraen los argumentos, se abre un pipe para enviar información entre los procesos\
         Se crean 2 procesos hijos, uno para cada comando y si hay redirección se abre en el último\n\
-     # - Se ignora el resto de la linea cuando aparece un caracter #\n\n";
+     # - Se ignora el resto de la linea cuando aparece un caracter #\n\n\
+     & - Al colocar este caracter al final de un comando se le dice a la shell que no espere que termine la ejecución para devolver el prompt\n\n\
+  jobs - Devuelve una lista con todos los pid de los procesos que se están ejecutando en segundo plano\n\n\
+fg <pid> - realiza un waitpid del pid dado, en caso de que sea válido. Luego de esto devuelve el prompt\n\
+    ";
 
 char help[] = "help:\n\
     help - Informacion general \n\
