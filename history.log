@@ -1,8 +1,2 @@
-sleep 10 &
-jobs
-fg 31955
-sleep 100 &
-fg 32081
-fg 1
-ls
+git push origin master
 exit
