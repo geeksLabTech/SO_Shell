@@ -18,6 +18,7 @@ void execute(char line[], struct cmdInfo *cmd_info) {
   struct execDetails *exec_details =
       (struct execDetails *)malloc(sizeof(struct execDetails));
   int syntax_error = 0;
+  int is_cmd_args_cleaned = 0;
 
   /*
   Recolectar argumentos del comando
@@ -38,7 +39,9 @@ void execute(char line[], struct cmdInfo *cmd_info) {
     cmd = exec_details->command;
     if (cmd != NULL) {
       if (cmd[0] == '|') { // si comienza la línea con un operador de pipe
+        //printf("limpie\n");
         cleanArgs(cmd_args);
+        is_cmd_args_cleaned = 1;
         if (cmd[1] != '\0') // si no hay más nada en el comando se informa error
                             // de sintaxis
           syntax_error = 1;
@@ -65,8 +68,13 @@ void execute(char line[], struct cmdInfo *cmd_info) {
     }
   }
   // una vez ejectado todo se libera la memoria ocupada por los argumentos
-  cleanArgs(cmd_args);
+  //printf("casi termina\n");
+  if(!is_cmd_args_cleaned){
+    cleanArgs(cmd_args);
+  }
+  //printf("sobrevive\n");
   free(cmd_args);
+  //printf("muere\n");
   // Se informa de errores de ejecución o se actualiza el estado
   if (syntax_error) {
     printf("Error: Syntax Error\n");
@@ -81,6 +89,7 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details) {
   pid_t son_id; // id del hijo
   son_id = fork();
   int wait_signal = 0;
+  //printf("entroo\n");
   // Si el comando tiene el operador & al final se corerá en segundo plano
   if (strcmp(line[argc - 1], "&") == 0) {
     // printf("0\n");
@@ -164,6 +173,7 @@ void execPipe(char *args1[], char *args2[], struct execDetails *exec_details) {
 
 int getArgs(struct args *args, char *cmd) {
   int i = 0;
+  //printf("empieza\n");
   struct args *cmd_args = args;
   cmd = strtok(cmd, " ");
   // procesar la cadena recibida y dividirla en tokens separados por espacio
@@ -183,12 +193,15 @@ int getArgs(struct args *args, char *cmd) {
     i++;
   }
   // añadir un último argumento null
+  
   cmd_args->arg = cmd;
   cmd_args->next = NULL;
   // modificar el argumento help para ejecutar el binario de help.c
   if (strncmp(args->arg, "help", 4) == 0)
     args->arg = (char *)"./help";
   // retornar la cantidad de argumentos del comando
+  //printf("hasta alo\n");
+  
   return i;
 }
 char *getArgsList(struct args *args, char **first_arg, int argc) {
