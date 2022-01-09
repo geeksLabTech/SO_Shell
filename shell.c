@@ -79,7 +79,6 @@ void execSimple(char *line[], int argc, struct execDetails *exec_details) {
   // estado de la subtarea
   int status = 0;
   pid_t son_id; // id del hijo
-
   son_id = fork();
   int wait_signal = 0;
   // Si el comando tiene el operador & al final se corerá en segundo plano
@@ -171,6 +170,7 @@ int getArgs(struct args *args, char *cmd) {
   while (cmd != NULL) {
     // Si hay operadores de pipe o redirección de entrada o salida terminar el
     // procesamiento pues ya no hay más argumentos del comando
+    
     if (cmd[0] == '>' || cmd[0] == '<' || cmd[0] == '|') {
       break;
     }
@@ -222,7 +222,6 @@ int findRedirections(char *cmd, struct execDetails *exec_details) {
       // procesar la cadena para obtener el archivo q se debe abrir
       cmd = strchr(cmd, ' ');
       cmd = strtok(NULL, " ");
-
       if (cmd == NULL)
         return -1;
       // añadir el fichero a exec details para cuando se vaya a ejecutar el
@@ -232,7 +231,7 @@ int findRedirections(char *cmd, struct execDetails *exec_details) {
       cmd = strtok(NULL, " ");
     }
     // de igual manera se hace con los ficheros de salida
-    if (cmd[0] == '>') {
+    else if (cmd[0] == '>') {
       if (cmd[1] == '>') {
         if (strlen(cmd) > 2) {
           return -1;
@@ -243,6 +242,7 @@ int findRedirections(char *cmd, struct execDetails *exec_details) {
       } else if (strlen(cmd) > 1) {
         return -1;
       }
+      
       cmd = strchr(cmd, ' ');
       cmd = strtok(NULL, " ");
       if (cmd == NULL)
@@ -251,6 +251,7 @@ int findRedirections(char *cmd, struct execDetails *exec_details) {
       insertNULL(cmd);
       cmd = strtok(NULL, " ");
     }
+
   }
   exec_details->command = cmd;
   return 0;
@@ -268,16 +269,15 @@ void redirect(struct execDetails *exec_details) {
   // abrir los respectivos ficheros de entrada y/o salida
   if (exec_details->in_file != NULL)
     redirect_input(exec_details->in_file);
-  if (exec_details->out_file != NULL) {
+  else if (exec_details->out_file != NULL) {
     redirect_output(exec_details->out_file, 1);
   } else
     redirect_output(exec_details->out_file, 0);
 }
 void redirect_input(char *file) {
-  int fd;
-  close(0);
-  fd = open(file, O_RDONLY);
-  dup(fd);
+  int fd = open(file, O_RDONLY);
+  dup2(fd, 0); 
+  close(fd);
 }
 void redirect_output(char *file, int append) {
   if (!append) {
